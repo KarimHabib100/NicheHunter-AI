@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+@layer base {
+  :root {
+    --color-cyan: 0 240 255;
+    --color-background: 10 10 15;
+    --color-surface: 18 18 26;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-white antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  ::selection {
+    @apply bg-cyan-500/30 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-light rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-cyan-500/50;
+  }
+}
+
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+
+@layer components {
+  .glass-card {
+    @apply bg-surface/80 backdrop-blur-xl border border-border rounded-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:border-cyan-500/50 hover:shadow-glow-sm;
+  }
+
+  .neon-border {
+    @apply border border-cyan-500/30;
+    box-shadow:
+      0 0 10px rgba(0, 240, 255, 0.1),
+      inset 0 0 10px rgba(0, 240, 255, 0.05);
+  }
+
+  .neon-text {
+    @apply text-neon-cyan;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  }
+
+  .btn-primary {
+    @apply relative px-8 py-4 bg-cyan-500 text-black font-semibold rounded-xl
+           transition-all duration-300 hover:bg-cyan-400 hover:shadow-glow
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-surface border border-border text-white font-medium rounded-xl
+           transition-all duration-300 hover:border-cyan-500/50 hover:bg-surface-light
+           active:scale-95;
+  }
+
+  .input-field {
+    @apply w-full px-6 py-4 bg-surface border border-border rounded-xl
+           text-white placeholder-gray-500 outline-none
+           transition-all duration-300
+           focus:border-cyan-500/50 focus:shadow-glow-sm focus:bg-surface-light;
+  }
+
+  .section-heading {
+    @apply text-2xl md:text-3xl font-bold text-white mb-2;
+  }
+
+  .section-subheading {
+    @apply text-gray-400 text-lg;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent;
+  }
+
+  .hud-corner {
+    @apply absolute w-4 h-4 border-cyan-500/50;
+  }
+
+  .hud-corner-tl {
+    @apply hud-corner top-0 left-0 border-t-2 border-l-2;
+  }
+
+  .hud-corner-tr {
+    @apply hud-corner top-0 right-0 border-t-2 border-r-2;
+  }
+
+  .hud-corner-bl {
+    @apply hud-corner bottom-0 left-0 border-b-2 border-l-2;
+  }
+
+  .hud-corner-br {
+    @apply hud-corner bottom-0 right-0 border-b-2 border-r-2;
+  }
+}
+
+/* ============================================
+   UTILITY STYLES
+   ============================================ */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(26, 26, 42, 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 26, 42, 0.5) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .bg-grid-dense {
+    background-image:
+      linear-gradient(to right, rgba(26, 26, 42, 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 26, 42, 0.3) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .mask-radial {
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  }
+
+  .mask-fade-bottom {
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+
+  .animate-in {
+    animation: fade-in 0.5s ease-out, slide-up 0.5s ease-out;
+  }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+}
+
+/* ============================================
+   BACKGROUND EFFECTS
+   ============================================ */
+
+.page-background {
+  @apply fixed inset-0 -z-10 bg-background;
+}
+
+.page-background::before {
+  content: '';
+  @apply absolute inset-0 bg-grid opacity-50;
+}
+
+.page-background::after {
+  content: '';
+  @apply absolute inset-0 bg-radial-glow;
+}
+
+.glow-orb {
+  @apply absolute rounded-full blur-3xl opacity-20 pointer-events-none;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.4) 0%, transparent 70%);
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.skeleton {
+  @apply bg-gradient-to-r from-surface via-surface-light to-surface bg-[length:200%_100%]
+         animate-pulse rounded-lg;
+}
+
+.spinner {
+  @apply w-6 h-6 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin;
+}
+
+/* ============================================
+   SCAN LINE EFFECT
+   ============================================ */
+
+.scan-line {
+  @apply absolute inset-0 overflow-hidden pointer-events-none;
+}
+
+.scan-line::after {
+  content: '';
+  @apply absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent;
+  animation: scan-line 3s linear infinite;
+}

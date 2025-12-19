@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Next.js
+.next
+out
+build
+
+# Database
+*.db
+*.db-journal
+prisma/dev.db
+
+# Environment
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Temp files
+tmp/
+*.tmp
+*.temp
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+
+# Vercel
+.vercel
