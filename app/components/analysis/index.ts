@@ -6,3 +6,5 @@ export { StructureMap } from './StructureMap';
 export { PersonaProfile } from './PersonaProfile';
 export { PlatformTips } from './PlatformTips';
 export { SummaryCard } from './SummaryCard';
+export { ExportPanel } from './ExportPanel';
+export { ShareableCard } from './ShareableCard';

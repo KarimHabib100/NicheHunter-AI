@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, Share2, Download } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Background } from '@/app/components/landing';
 import {
   AnalysisLoading,
@@ -13,9 +13,16 @@ import {
   StructureMap,
   PersonaProfile,
   PlatformTips,
+  ExportPanel,
 } from '@/app/components/analysis';
 import { Button } from '@/app/components/ui';
 import { getAnalysisGrade } from '@/lib/glass-engine';
+import { formatAnalysis } from '@/lib/output/formatter';
+import {
+  generateExportJSON,
+  generateExportMarkdown,
+  generateTextSummary,
+} from '@/lib/output/export';
 
 interface AnalysisData {
   id: string;
@@ -187,6 +194,45 @@ export default function AnalysisPage() {
 
   const { grade, label } = getAnalysisGrade(overallScore);
 
+  // Format analysis for export
+  const formattedAnalysis = formatAnalysis(
+    data.id,
+    data.video.title,
+    data.video.duration,
+    data.hook,
+    data.retention,
+    data.structure,
+    { style: 'talking-head', pattern: { facePresence: 0.5, textOverlayFrequency: 0.3, sceneChangeRate: 0.3, brollUsage: 0.2, dominantColors: [], editingStyle: 'standard' } },
+    data.persona
+  );
+
+  const handleExportJSON = () => {
+    const json = generateExportJSON(formattedAnalysis);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analysis-${data.id.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportMarkdown = () => {
+    const md = generateExportMarkdown(formattedAnalysis);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analysis-${data.id.slice(0, 8)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyText = async () => {
+    const text = generateTextSummary(formattedAnalysis);
+    await navigator.clipboard.writeText(text);
+  };
+
   const strengths: string[] = [];
   const improvements: string[] = [];
   const quickWins: string[] = [];
@@ -238,10 +284,15 @@ export default function AnalysisPage() {
               <Button variant="ghost" size="sm" onClick={() => fetchAnalysis()}>
                 <RefreshCw className="w-4 h-4" />
               </Button>
-              <Button variant="secondary" size="sm">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
+              <ExportPanel
+                analysisId={data.id}
+                videoTitle={data.video.title}
+                grade={grade}
+                score={Math.round(overallScore * 100)}
+                onExportJSON={handleExportJSON}
+                onExportMarkdown={handleExportMarkdown}
+                onCopyText={handleCopyText}
+              />
             </div>
           </motion.header>
 
