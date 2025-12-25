@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
+import { Header } from './components/Header';
 import './globals.css';
 
 const inter = Inter({
@@ -45,7 +46,8 @@ export default function RootLayout({
       <body className="font-sans">
         <Providers>
           <div className="page-background" />
-          <main className="relative min-h-screen">{children}</main>
+          <Header />
+          <main className="relative min-h-screen pt-20">{children}</main>
         </Providers>
       </body>
     </html>

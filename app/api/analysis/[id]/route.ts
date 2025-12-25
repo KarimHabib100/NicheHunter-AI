@@ -3,21 +3,20 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAnalysisById, deleteAnalysis } from '@/lib/db/analysis';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
+
+    // Allow both authenticated and anonymous access
     const session = await getServerSession(authOptions);
+    const userId = session?.user?.id || null;
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const analysis = await getAnalysisById(params.id, session.user.id);
+    // Pass userId to check ownership, but allow access to anonymous analyses
+    const analysis = await getAnalysisById(id, userId);
 
     if (!analysis) {
       return NextResponse.json(
@@ -81,11 +80,9 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -95,7 +92,7 @@ export async function DELETE(
       );
     }
 
-    await deleteAnalysis(params.id, session.user.id);
+    await deleteAnalysis(id, session.user.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

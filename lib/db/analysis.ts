@@ -3,7 +3,7 @@ import type { AnalysisResult, AnalysisSummary } from '@/types/analysis';
 import { Prisma } from '@prisma/client';
 
 export async function createAnalysis(
-  userId: string,
+  userId: string | null,
   data: {
     videoId?: string;
     videoUrl?: string;
@@ -14,7 +14,7 @@ export async function createAnalysis(
 ) {
   return prisma.analysis.create({
     data: {
-      userId,
+      userId: userId || undefined, // null becomes undefined for Prisma
       videoId: data.videoId,
       videoUrl: data.videoUrl,
       videoTitle: data.videoTitle,
@@ -145,15 +145,20 @@ export async function updateAnalysisResults(
   });
 }
 
-export async function getAnalysisById(id: string, userId?: string) {
-  const where: Prisma.AnalysisWhereUniqueInput = { id };
-
+export async function getAnalysisById(id: string, userId?: string | null) {
   const analysis = await prisma.analysis.findUnique({
-    where,
+    where: { id },
   });
 
   if (!analysis) return null;
-  if (userId && analysis.userId !== userId) return null;
+
+  // Allow access if:
+  // 1. No userId provided (public access)
+  // 2. Analysis is anonymous (userId is null)
+  // 3. userId matches analysis owner
+  if (userId !== undefined && analysis.userId !== null && analysis.userId !== userId) {
+    return null;
+  }
 
   return analysis;
 }

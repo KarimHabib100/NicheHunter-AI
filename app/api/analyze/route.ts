@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { z } from 'zod';
+import { authOptions } from '@/lib/auth';
 import { createAnalysis, updateAnalysisStatus } from '@/lib/db/analysis';
 import { isYouTubeUrl, extractYouTubeId } from '@/lib/utils/youtube';
 import { getVideoInfo } from '@/lib/video/download';
 import { getUploadedFilePath } from '@/lib/video/upload';
 import { getVideoMetadata } from '@/lib/video/process';
 import { runAnalysisPipeline } from '@/lib/services/analyzer';
-
-// MVP: Default user ID for anonymous usage
-const DEFAULT_USER_ID = 'anonymous';
 
 const analyzeUrlSchema = z.object({
   url: z.string().url('Invalid URL'),
@@ -21,8 +20,9 @@ const analyzeUploadSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    // MVP: No auth required, use default user
-    const userId = DEFAULT_USER_ID;
+    // Get session if available, otherwise use null for anonymous
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id || null; // null for anonymous users
 
     let body;
     try {
