@@ -15,6 +15,19 @@ const nextConfig = {
       },
     ],
   },
+  // Production optimizations
+  poweredByHeader: false,
+  compress: true,
+  // Strict mode for development
+  reactStrictMode: true,
+  // Output configuration
+  output: 'standalone',
+  // Logging
+  logging: {
+    fetches: {
+      fullUrl: process.env.NODE_ENV === 'development',
+    },
+  },
 };
 
 module.exports = nextConfig;
