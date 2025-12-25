@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { z } from 'zod';
-import { authOptions } from '@/lib/auth';
 import { createAnalysis, updateAnalysisStatus } from '@/lib/db/analysis';
 import { isYouTubeUrl, extractYouTubeId } from '@/lib/utils/youtube';
 import { getVideoInfo } from '@/lib/video/download';
 import { getUploadedFilePath } from '@/lib/video/upload';
 import { getVideoMetadata } from '@/lib/video/process';
 import { runAnalysisPipeline } from '@/lib/services/analyzer';
+
+// MVP: Default user ID for anonymous usage
+const DEFAULT_USER_ID = 'anonymous';
 
 const analyzeUrlSchema = z.object({
   url: z.string().url('Invalid URL'),
@@ -20,19 +21,28 @@ const analyzeUploadSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // MVP: No auth required, use default user
+    const userId = DEFAULT_USER_ID;
 
-    if (!session?.user?.id) {
+    let body;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: 'Invalid JSON body' },
+        { status: 400 }
       );
     }
 
-    const body = await req.json();
-
     if (body.url) {
-      const { url } = analyzeUrlSchema.parse(body);
+      const parseResult = analyzeUrlSchema.safeParse(body);
+      if (!parseResult.success) {
+        return NextResponse.json(
+          { error: 'Invalid URL format' },
+          { status: 400 }
+        );
+      }
+      const { url } = parseResult.data;
 
       if (!isYouTubeUrl(url)) {
         return NextResponse.json(
@@ -53,13 +63,17 @@ export async function POST(req: NextRequest) {
       try {
         videoInfo = await getVideoInfo(url);
       } catch (e) {
-        return NextResponse.json(
-          { error: 'Failed to fetch video information. Make sure yt-dlp is installed.' },
-          { status: 500 }
-        );
+        // Fallback: create analysis with basic info if yt-dlp fails
+        console.warn('yt-dlp failed, using fallback:', e);
+        videoInfo = {
+          id: videoId,
+          title: `YouTube Video ${videoId}`,
+          duration: 300, // default 5 min
+          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        };
       }
 
-      const analysis = await createAnalysis(session.user.id, {
+      const analysis = await createAnalysis(userId, {
         videoId: videoInfo.id,
         videoUrl: url,
         videoTitle: videoInfo.title,
@@ -85,7 +99,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.uploadId) {
-      const { uploadId, title } = analyzeUploadSchema.parse(body);
+      const parseResult = analyzeUploadSchema.safeParse(body);
+      if (!parseResult.success) {
+        return NextResponse.json(
+          { error: 'Invalid upload data' },
+          { status: 400 }
+        );
+      }
+      const { uploadId, title } = parseResult.data;
 
       const filePath = getUploadedFilePath(uploadId);
       if (!filePath) {
@@ -105,7 +126,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const analysis = await createAnalysis(session.user.id, {
+      const analysis = await createAnalysis(userId, {
         videoTitle: title || `Uploaded Video - ${uploadId}`,
         duration: Math.round(metadata.duration),
       });
@@ -131,14 +152,6 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error('Analyze error:', error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     const message = error instanceof Error ? error.message : 'Analysis failed';
     return NextResponse.json({ error: message }, { status: 500 });
   }

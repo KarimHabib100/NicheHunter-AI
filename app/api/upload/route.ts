@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { processUploadedFile } from '@/lib/video/upload';
 import { getVideoMetadata } from '@/lib/video/process';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // MVP: No auth required
 
-    if (!session?.user) {
+    let formData;
+    try {
+      formData = await req.formData();
+    } catch {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: 'Invalid form data' },
+        { status: 400 }
       );
     }
 
-    const formData = await req.formData();
     const uploadedFile = await processUploadedFile(formData);
 
     let duration = 0;
