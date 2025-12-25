@@ -16,7 +16,7 @@ import {
   ExportPanel,
 } from '@/app/components/analysis';
 import { Button } from '@/app/components/ui';
-import { getAnalysisGrade } from '@/lib/glass-engine';
+import { getAnalysisGrade } from '@/lib/utils/analysis';
 import { formatAnalysis } from '@/lib/output/formatter';
 import {
   generateExportJSON,

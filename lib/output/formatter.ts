@@ -5,7 +5,7 @@ import type {
   VisualAnalysis,
   PersonaAnalysis,
 } from '@/types/analysis';
-import { getAnalysisGrade } from '@/lib/glass-engine';
+import { getAnalysisGrade } from '@/lib/utils/analysis';
 import { formatDuration } from '@/lib/utils/time';
 
 export interface FormattedAnalysis {

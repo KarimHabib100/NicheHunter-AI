@@ -42,8 +42,4 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// Note: In Next.js App Router, formData is handled natively - no config needed

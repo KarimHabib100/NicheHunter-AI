@@ -267,17 +267,19 @@ export interface ShareableData {
 }
 
 /**
- * Encode shareable data to URL-safe string
+ * Encode shareable data to URL-safe string (browser-compatible)
  */
 export function encodeShareableData(data: ShareableData): string {
   const json = JSON.stringify(data);
-  // Base64 encode and make URL-safe
-  const base64 = Buffer.from(json).toString('base64');
+  // Base64 encode and make URL-safe (using btoa for browser compatibility)
+  const base64 = typeof window !== 'undefined'
+    ? btoa(unescape(encodeURIComponent(json)))
+    : Buffer.from(json).toString('base64');
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 /**
- * Decode shareable data from URL-safe string
+ * Decode shareable data from URL-safe string (browser-compatible)
  */
 export function decodeShareableData(encoded: string): ShareableData | null {
   try {
@@ -287,7 +289,10 @@ export function decodeShareableData(encoded: string): ShareableData | null {
     while (base64.length % 4) {
       base64 += '=';
     }
-    const json = Buffer.from(base64, 'base64').toString('utf8');
+    // Use atob for browser compatibility
+    const json = typeof window !== 'undefined'
+      ? decodeURIComponent(escape(atob(base64)))
+      : Buffer.from(base64, 'base64').toString('utf8');
     return JSON.parse(json);
   } catch {
     return null;
